@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
     sin.sin_addr.s_addr = inet_addr(host_addr);
     sin.sin_port = htons(port);
     // Set all bits of the padding field to 0
+
     memset(sin.sin_zero, '\0', sizeof(sin.sin_zero));
 
     /* Connect to the server */
@@ -35,27 +36,34 @@ int main(int argc, char *argv[])
         close(s);
         exit(1);
     }
-    char recBuf[200];
-    int recLen = recv(s, recBuf, sizeof(recBuf), 0);
-    fputs(recBuf, stdout);
-    fputc('\n', stdout);
-    fflush(stdout);
-
     size_t buf_size = 200;
     char *buf;
-    buf = malloc(sizeof(char) * 200);
-    getline(&buf, &buf_size, stdin);
-    int len = strlen(buf) + 1;
-    send(s, buf, len, 0);
+    char *recBuf;
+    int ret;
+    int len;
+    int recLen;
+    while (1)
+    {
+        recBuf = malloc(sizeof(char) * 200);
+        recLen = recv(s, recBuf, sizeof(char) * 200, 0);
+        recBuf[recLen] = '\0';
+        if (recLen < 1)
+            break;
+        fputs(recBuf, stdout);
+        fputc('\n', stdout);
+        fflush(stdout);
 
-    recLen = recv(s, recBuf, sizeof(recBuf), 0);
-    fputs(recBuf, stdout);
-    fputc('\n', stdout);
-    fflush(stdout);
-
-    getline(&buf, &buf_size, stdin);
-    len = strlen(buf) + 1;
-    send(s, buf, len, 0);
+        buf = malloc(sizeof(char) * 200);
+        ret = getline(&buf, &buf_size, stdin);
+        len = strlen(buf) + 1;
+        if (ret == 0)
+        {
+            break;
+        }
+        send(s, buf, len, 0);
+        free(buf);
+        free(recBuf);
+    }
 
     close(s);
 }
