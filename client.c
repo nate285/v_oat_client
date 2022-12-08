@@ -47,4 +47,15 @@ int main(int argc, char *argv[])
     getline(&buf, &buf_size, stdin);
     int len = strlen(buf) + 1;
     send(s, buf, len, 0);
+
+    recLen = recv(s, recBuf, sizeof(recBuf), 0);
+    fputs(recBuf, stdout);
+    fputc('\n', stdout);
+    fflush(stdout);
+
+    getline(&buf, &buf_size, stdin);
+    len = strlen(buf) + 1;
+    send(s, buf, len, 0);
+
+    close(s);
 }
